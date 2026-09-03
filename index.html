@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en-AU">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hygiene Direct | Toilet Paper, Hand Towel and Soap Delivered to Your Business</title>
+    <meta name="description" content="Commercial washroom consumables delivered direct. 2 ply and 3 ply toilet paper, hand towel and hand soap by the carton. Simple ordering, 30 day accounts, Brisbane and South East Queensland delivery." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+
+    <!-- Hidden form so Netlify Forms detects the fields at build time. The React app posts to this form name. -->
+    <form name="order" netlify netlify-honeypot="bot-field" hidden>
+      <input type="text" name="bot-field" />
+      <input type="text" name="orderRef" />
+      <input type="text" name="businessName" />
+      <input type="text" name="abn" />
+      <input type="text" name="contactName" />
+      <input type="email" name="email" />
+      <input type="tel" name="phone" />
+      <input type="text" name="street" />
+      <input type="text" name="suburb" />
+      <input type="text" name="state" />
+      <input type="text" name="postcode" />
+      <input type="text" name="poNumber" />
+      <input type="text" name="deliveryInstructions" />
+      <input type="text" name="paymentMethod" />
+      <textarea name="orderLines"></textarea>
+      <input type="text" name="subtotalExGst" />
+      <input type="text" name="gst" />
+      <input type="text" name="totalIncGst" />
+    </form>
+    <form name="account-enquiry" netlify netlify-honeypot="bot-field" hidden>
+      <input type="text" name="bot-field" />
+      <input type="text" name="businessName" />
+      <input type="text" name="contactName" />
+      <input type="email" name="email" />
+      <input type="tel" name="phone" />
+      <textarea name="message"></textarea>
+    </form>
+  </body>
+</html>
