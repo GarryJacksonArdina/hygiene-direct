@@ -1,14 +1,44 @@
-// Posts a Netlify Forms compatible payload. Works once deployed on Netlify.
-// In local dev the request will not be handled, so callers should surface a fallback.
-export async function submitNetlifyForm(formName, data) {
-  const body = new URLSearchParams({ 'form-name': formName, ...data }).toString()
-  const res = await fetch('/', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body,
-  })
-  if (!res.ok) throw new Error(`Form submission failed with status ${res.status}`)
-  return res
+// Thin client for the /api routes. Same code runs on Netlify and Vercel.
+async function post(path, data) {
+  const res = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+  let body = {}
+  try { body = await res.json() } catch { /* non JSON response */ }
+  if (!res.ok) throw new Error(body.error || `Request failed (${res.status})`)
+  return body
+}
+
+export const submitOrder = (payload) => post('/api/order', payload)
+export const submitAccountEnquiry = (payload) => post('/api/account-enquiry', payload)
+export const createCheckoutSession = (payload) => post('/api/create-checkout-session', payload)
+
+export async function fetchPaymentConfig() {
+  try {
+    const res = await fetch('/api/payment-config')
+    if (!res.ok) return { card: false }
+    return await res.json()
+  } catch {
+    return { card: false }
+  }
+}
+
+export async function fetchCheckoutSession(id) {
+  const res = await fetch(`/api/checkout-session?id=${encodeURIComponent(id)}`)
+  const body = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(body.error || 'Could not confirm payment')
+  return body
+}
+
+// The order is stashed here before redirecting to Stripe so the confirmation
+// page can show it and save it for reorder once payment is confirmed.
+const PENDING_KEY = 'hd-pending-order-v1'
+export function savePendingOrder(order) {
+  try { sessionStorage.setItem(PENDING_KEY, JSON.stringify(order)) } catch { /* ignore */ }
+}
+export function readPendingOrder() {
+  try { return JSON.parse(sessionStorage.getItem(PENDING_KEY)) } catch { return null }
+}
+export function clearPendingOrder() {
+  try { sessionStorage.removeItem(PENDING_KEY) } catch { /* ignore */ }
 }
 
 export function makeOrderRef() {

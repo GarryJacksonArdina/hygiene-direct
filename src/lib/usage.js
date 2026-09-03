@@ -1,4 +1,4 @@
-import { products } from '../data/products'
+import { products } from '../data/products.js'
 
 const WORK_DAYS_PER_MONTH = 22
 

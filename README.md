@@ -3,7 +3,7 @@
 Commercial washroom consumables ordering site for Ardina Commercial Services.
 Four products (2 ply toilet paper, 3 ply toilet paper, hand towel, hand soap), carton pricing, volume discounts, usage calculator, one click reorder, and an order form that lands in your inbox.
 
-Stack: React 19, Vite, Tailwind v4, React Router. No backend. Orders and account enquiries are captured with Netlify Forms.
+Stack: React 19, Vite, Tailwind v4, React Router. A handful of serverless functions in `server/` handle card payments (Stripe Checkout) and order notifications. The same functions run on Netlify (`netlify/functions/`) or Vercel (`api/`).
 
 ## Run it locally
 
@@ -27,14 +27,43 @@ Production build: `npm run build` (output in `dist/`).
 
 Prices in `products.js` are per carton, ex GST. GST is calculated at checkout and on the price toggle in the header.
 
-## Deploy on Netlify
+## How orders and payments work
 
-1. Push this repo to GitHub and create a new Netlify site from it. `netlify.toml` already sets the build command, publish folder and the SPA redirect.
-2. In the Netlify dashboard go to Forms. After the first deploy you will see two forms: `order` and `account-enquiry`.
-3. Add an email notification on each form (Forms > Form notifications) pointing at the orders inbox. Every submitted order arrives as an email with the order reference, lines, totals and delivery details.
-4. Optional: add a Slack or Zapier notification from the same screen if you want orders pushed into ServiceM8 or Ardina JMS later.
+Three payment options at checkout:
 
-Vercel also works (`vercel.json` handles the SPA rewrite) but the forms will need a different backend such as Formspree or a small serverless function.
+| Option | What happens |
+|---|---|
+| Pay by card now | Browser is sent to Stripe Checkout. Prices are recalculated server side from `products.js`, so the cart cannot be tampered with. Stripe emails a tax receipt. On return the site confirms the session was paid, then the Stripe webhook forwards the order to your notifications. |
+| Pay on invoice | Order is posted to `/api/order` and forwarded to your notification channels. You invoice from Xero manually for now. |
+| 30 day account | Same as invoice, flagged as an account order. |
+
+The card option is hidden automatically until `STRIPE_SECRET_KEY` is set.
+
+### Environment variables
+
+See `.env.example`. Set these in Netlify (Site configuration > Environment variables) or Vercel (Project > Settings > Environment Variables).
+
+| Variable | Needed for |
+|---|---|
+| `STRIPE_SECRET_KEY` | Card payments. Use `sk_test_...` first. The checkout page shows a test card hint while in test mode. |
+| `STRIPE_WEBHOOK_SECRET` | Forwarding paid card orders to your notifications. Create a webhook in Stripe > Developers > Webhooks pointing at `https://your-domain/api/stripe-webhook` for the event `checkout.session.completed`. |
+| `STRIPE_GST_TAX_RATE_ID` | Optional. Create a 10% exclusive tax rate in Stripe and paste its id so GST shows as tax on the Stripe receipt. Without it GST is a line item. |
+| `ORDER_WEBHOOK_URL` | Optional. Any JSON webhook (Zapier, Make, Slack, Ardina JMS). |
+| `RESEND_API_KEY` + `ORDER_EMAIL_TO` | Optional. Emails every order and enquiry through resend.com. `ORDER_EMAIL_FROM` once you verify a domain there. |
+
+On Netlify no notification variables are needed: orders are also written to Netlify Forms (`order` and `account-enquiry`), and you add email notifications in the Netlify dashboard under Forms. On Vercel set at least one of the webhook or Resend options, otherwise orders are only logged and the confirmation page says so.
+
+### Xero
+
+Not connected yet. The hook point is the `checkout.session.completed` branch in `server/handlers.js`, which already has the customer, order lines, totals and Stripe payment reference in hand. A future step creates a paid ACCREC invoice there and, for invoice orders, a draft invoice from `submitOrder`.
+
+## Deploy
+
+**Netlify:** create a site from this repo. `netlify.toml` sets the build, functions folder and redirects. Local dev with functions: `npx netlify dev`.
+
+**Vercel:** import the repo or deploy the folder. `vercel.json` handles the SPA rewrite and `api/` is picked up automatically. Local dev with functions: `npx vercel dev`.
+
+Test cards in Stripe test mode: 4242 4242 4242 4242, any future expiry, any CVC.
 
 ## Before go live
 
@@ -44,5 +73,6 @@ Vercel also works (`vercel.json` handles the SPA rewrite) but the forms will nee
 - [ ] Confirm volume discount tiers make margin
 - [ ] Have terms of trade reviewed
 - [ ] Swap illustrations for product photos
-- [ ] Set up Netlify form notifications and place a test order
-- [ ] Point the domain at Netlify
+- [ ] Add Stripe test keys, place a test card order, then switch to live keys
+- [ ] Set up the Stripe webhook and at least one notification channel, place a test order on each payment option
+- [ ] Point the domain at the host

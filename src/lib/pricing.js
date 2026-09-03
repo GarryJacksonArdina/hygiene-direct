@@ -1,4 +1,4 @@
-import { site } from '../data/site'
+import { site } from '../data/site.js'
 
 export function fmt(n) {
   return new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(n)

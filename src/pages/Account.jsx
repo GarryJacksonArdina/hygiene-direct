@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { site } from '../data/site'
-import { submitNetlifyForm } from '../lib/forms'
+import { submitAccountEnquiry } from '../lib/forms'
 
 export default function Account() {
   const [form, setForm] = useState({ businessName: '', contactName: '', email: '', phone: '', message: '' })
@@ -11,7 +11,7 @@ export default function Account() {
     e.preventDefault()
     setStatus('submitting')
     try {
-      await submitNetlifyForm('account-enquiry', form)
+      await submitAccountEnquiry(form)
       setStatus('done')
     } catch (err) {
       console.error(err)
@@ -73,7 +73,7 @@ export default function Account() {
 }
 
 function Field({ label, ...props }) {
-  const id = label.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+  const id = label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
   return (
     <div>
       <label className="label" htmlFor={id}>{label}{props.required && <span className="text-red-600"> *</span>}</label>

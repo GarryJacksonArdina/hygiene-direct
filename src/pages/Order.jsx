@@ -1,10 +1,10 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import OrderSummary from '../components/OrderSummary'
 import QtyStepper from '../components/QtyStepper'
 import { useCart } from '../context/CartContext'
 import { site } from '../data/site'
-import { makeOrderRef, submitNetlifyForm } from '../lib/forms'
+import { createCheckoutSession, fetchPaymentConfig, makeOrderRef, savePendingOrder, submitOrder } from '../lib/forms'
 import { cartonPrice, fmt } from '../lib/pricing'
 
 const EMPTY = {
@@ -19,7 +19,7 @@ const EMPTY = {
   postcode: '',
   poNumber: '',
   deliveryInstructions: '',
-  paymentMethod: 'invoice-prepay',
+  paymentMethod: 'card',
 }
 
 export default function Order() {
@@ -28,6 +28,20 @@ export default function Order() {
   const [form, setForm] = useState(() => ({ ...EMPTY, ...(lastOrder?.customer ?? {}) }))
   const [status, setStatus] = useState('idle') // idle | submitting | error
   const [errorMsg, setErrorMsg] = useState('')
+  const [payConfig, setPayConfig] = useState({ card: true, loaded: false })
+  const [params] = useSearchParams()
+  const cancelled = params.get('cancelled') === '1'
+
+  useEffect(() => {
+    let alive = true
+    fetchPaymentConfig().then((c) => alive && setPayConfig({ ...c, loaded: true }))
+    return () => { alive = false }
+  }, [])
+  useEffect(() => {
+    if (payConfig.loaded && !payConfig.card && form.paymentMethod === 'card') {
+      setForm((f) => ({ ...f, paymentMethod: 'invoice-prepay' }))
+    }
+  }, [payConfig, form.paymentMethod])
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
 
@@ -41,35 +55,36 @@ export default function Order() {
     const orderLines = lines
       .map((l) => `${l.qty} x ${l.product.name} (${l.variant.label}) [${l.variant.sku}] @ ${fmt(cartonPrice(l.variant, l.qty))} ex GST = ${fmt(cartonPrice(l.variant, l.qty) * l.qty)}`)
       .join('\n')
-    const payload = {
-      orderRef,
-      ...form,
-      orderLines: `${orderLines}\n\nDelivery: ${totals.delivery === 0 ? 'Free' : fmt(totals.delivery)}`,
-      subtotalExGst: totals.exGst.toFixed(2),
-      gst: totals.gst.toFixed(2),
-      totalIncGst: totals.total.toFixed(2),
-    }
     const record = {
       orderRef,
       placedAt: new Date().toISOString(),
       businessName: form.businessName,
       customer: form,
+      paymentMethod: form.paymentMethod,
       lines: lines.map((l) => ({ productId: l.productId, variantId: l.variantId, qty: l.qty })),
       detail: lines.map((l) => ({ name: l.product.name, variant: l.variant.label, qty: l.qty, price: cartonPrice(l.variant, l.qty) })),
       totals,
       cartonCount,
     }
+    const payload = { orderRef, customer: form, lines: record.lines, paymentMethod: form.paymentMethod }
 
     try {
-      await submitNetlifyForm('order', payload)
+      if (form.paymentMethod === 'card') {
+        savePendingOrder(record)
+        const { url } = await createCheckoutSession(payload)
+        if (!url) throw new Error('No checkout URL returned')
+        window.location.assign(url)
+        return
+      }
+      const res = await submitOrder(payload)
       saveLastOrder(record)
       clear()
-      navigate('/order-confirmed', { state: record })
+      navigate('/order-confirmed', { state: { ...record, delivered: res.delivered } })
     } catch (err) {
       console.error(err)
       setStatus('error')
       const mail = `mailto:${site.email}?subject=${encodeURIComponent(`Order ${orderRef} from ${form.businessName}`)}&body=${encodeURIComponent(`${orderLines}\n\nTotal inc GST: ${fmt(totals.total)}\n\nBusiness: ${form.businessName}\nContact: ${form.contactName}\nPhone: ${form.phone}\nDeliver to: ${form.street}, ${form.suburb} ${form.state} ${form.postcode}\nPO: ${form.poNumber}\nInstructions: ${form.deliveryInstructions}\nPayment: ${form.paymentMethod}`)}`
-      setErrorMsg(mail)
+      setErrorMsg({ message: err.message, mail })
     }
   }
 
@@ -89,7 +104,12 @@ export default function Order() {
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
       <h1 className="text-3xl font-extrabold tracking-tight">Your order</h1>
-      <p className="mt-1 text-ink-500">{cartonCount} carton{cartonCount === 1 ? '' : 's'} · review, add your details, submit. No payment taken online.</p>
+      <p className="mt-1 text-ink-500">{cartonCount} carton{cartonCount === 1 ? '' : 's'} · review, add your details, pay by card or on invoice.</p>
+      {cancelled && (
+        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          Card payment was cancelled. Your order is still here. Try again or choose pay on invoice.
+        </div>
+      )}
 
       <form onSubmit={onSubmit} className="mt-8 grid gap-8 lg:grid-cols-5" noValidate={false}>
         <div className="space-y-8 lg:col-span-3">
@@ -151,9 +171,21 @@ export default function Order() {
           <section className="card p-6">
             <h2 className="text-xl font-extrabold tracking-tight">Payment</h2>
             <div className="mt-5 space-y-3">
-              <Radio name="paymentMethod" value="invoice-prepay" checked={form.paymentMethod === 'invoice-prepay'} onChange={set('paymentMethod')} title="Pay on invoice before delivery" desc="We email a tax invoice. Pay by bank transfer or card and we deliver once it clears. Best for first orders." />
+              <Radio
+                name="paymentMethod"
+                value="card"
+                checked={form.paymentMethod === 'card'}
+                onChange={set('paymentMethod')}
+                disabled={payConfig.loaded && !payConfig.card}
+                title={<>Pay by card now <CardLogos /></>}
+                desc={payConfig.loaded && !payConfig.card ? 'Card payments are being switched on. Choose an invoice option for now.' : 'Visa, Mastercard and Amex through Stripe. Fastest way to get your order moving. A tax receipt is emailed straight away.'}
+              />
+              <Radio name="paymentMethod" value="invoice-prepay" checked={form.paymentMethod === 'invoice-prepay'} onChange={set('paymentMethod')} title="Pay on invoice before delivery" desc="We email a tax invoice. Pay by bank transfer and we deliver once it clears." />
               <Radio name="paymentMethod" value="account-30" checked={form.paymentMethod === 'account-30'} onChange={set('paymentMethod')} title="30 day account" desc={`For approved account customers and existing ${site.parentCompany} clients. Not on an account yet? Choose this and we will send you the short application with your confirmation.`} />
             </div>
+            {payConfig.testMode && form.paymentMethod === 'card' && (
+              <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">Stripe is in test mode. Use card 4242 4242 4242 4242, any future expiry, any CVC. No real money moves.</p>
+            )}
           </section>
         </div>
 
@@ -165,15 +197,16 @@ export default function Order() {
               <OrderSummary />
             </div>
             <button type="submit" className="btn-primary mt-6 w-full !py-4 !text-base" disabled={status === 'submitting'}>
-              {status === 'submitting' ? 'Sending order…' : 'Submit order'}
+              {status === 'submitting' ? (form.paymentMethod === 'card' ? 'Taking you to secure payment…' : 'Sending order…') : form.paymentMethod === 'card' ? `Pay ${fmt(totals.total)} by card` : 'Submit order'}
             </button>
             <p className="mt-3 text-xs text-ink-500">
-              By submitting you agree to our <Link to="/terms" className="underline">terms of trade</Link>. You will receive an email confirmation. Nothing is charged online.
+              By submitting you agree to our <Link to="/terms" className="underline">terms of trade</Link>. You will receive an email confirmation.
+              {form.paymentMethod === 'card' ? ' Card details are entered on Stripe\u2019s secure page, never on this site.' : ' Nothing is charged online.'}
             </p>
             {status === 'error' && (
               <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
-                <p className="font-semibold">We could not send your order automatically.</p>
-                <p className="mt-1">Please <a className="underline" href={errorMsg}>email it to us instead</a> or call {site.phone}. Your order details are prefilled in the email.</p>
+                <p className="font-semibold">{errorMsg.message || 'We could not send your order automatically.'}</p>
+                <p className="mt-1">Please try again, <a className="underline" href={errorMsg.mail}>email the order to us</a> or call {site.phone}. Your order details are prefilled in the email.</p>
               </div>
             )}
           </div>
@@ -184,7 +217,7 @@ export default function Order() {
 }
 
 function Input({ label, className = '', ...props }) {
-  const id = label.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+  const id = label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
   return (
     <div className={className}>
       <label className="label" htmlFor={id}>{label}{props.required && <span className="text-red-600"> *</span>}</label>
@@ -195,12 +228,22 @@ function Input({ label, className = '', ...props }) {
 
 function Radio({ title, desc, ...props }) {
   return (
-    <label className={`flex cursor-pointer gap-3 rounded-xl border p-4 transition ${props.checked ? 'border-brand-600 bg-brand-50 ring-2 ring-brand-200' : 'border-ink-300 hover:border-ink-500'}`}>
+    <label className={`flex gap-3 rounded-xl border p-4 transition ${props.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} ${props.checked ? 'border-brand-600 bg-brand-50 ring-2 ring-brand-200' : 'border-ink-300 hover:border-ink-500'}`}>
       <input type="radio" className="mt-1 h-4 w-4 accent-brand-700" {...props} />
       <span>
-        <span className="block font-semibold">{title}</span>
+        <span className="flex flex-wrap items-center gap-2 font-semibold">{title}</span>
         <span className="mt-0.5 block text-sm text-ink-500">{desc}</span>
       </span>
     </label>
+  )
+}
+
+function CardLogos() {
+  return (
+    <span className="inline-flex gap-1" aria-hidden="true">
+      {['Visa', 'MC', 'Amex'].map((c) => (
+        <span key={c} className="rounded border border-ink-300 bg-white px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-ink-700">{c}</span>
+      ))}
+    </span>
   )
 }
