@@ -1,8 +1,9 @@
-export default function Logo({ className = '' }) {
+// Wordmark. Serif, with the second word in italic and a single green point.
+export default function Logo({ className = '', light = false }) {
   return (
-    <svg viewBox="0 0 64 64" className={className} aria-hidden="true">
-      <rect width="64" height="64" rx="14" fill="#0f766e" />
-      <path d="M20 18h8v11h8V18h8v28h-8V36h-8v10h-8z" fill="#fff" />
-    </svg>
+    <span className={`inline-flex items-baseline font-display text-[22px] font-medium leading-none tracking-[-0.01em] ${light ? 'text-paper' : 'text-ink'} ${className}`}>
+      Hygiene<span className="ml-1 italic">Direct</span>
+      <span className={`ml-0.5 inline-block h-[5px] w-[5px] rounded-full ${light ? 'bg-paper' : 'bg-brand'}`} aria-hidden="true" />
+    </span>
   )
 }

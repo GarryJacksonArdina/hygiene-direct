@@ -8,13 +8,13 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
 
-    <!-- Hidden form so Netlify Forms detects the fields at build time. The React app posts to this form name. -->
+    <!-- Hidden forms so Netlify Forms registers the fields at build time. The API forwards submissions here when running on Netlify. -->
     <form name="order" netlify netlify-honeypot="bot-field" hidden>
       <input type="text" name="bot-field" />
       <input type="text" name="orderRef" />

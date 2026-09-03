@@ -1,33 +1,42 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --color-brand-50: #f0fdfa;
-  --color-brand-100: #ccfbf1;
-  --color-brand-200: #99f6e4;
-  --color-brand-500: #14b8a6;
-  --color-brand-600: #0d9488;
-  --color-brand-700: #0f766e;
-  --color-brand-800: #115e59;
-  --color-brand-900: #134e4a;
-  --color-ink-900: #0f172a;
-  --color-ink-700: #334155;
-  --color-ink-500: #64748b;
-  --color-ink-300: #cbd5e1;
-  --color-ink-100: #f1f5f9;
-  --color-paper: #f8fafc;
+  --font-sans: "Hanken Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Newsreader", Georgia, "Times New Roman", serif;
+
+  --color-paper: #f6f6f3;
+  --color-surface: #ffffff;
+  --color-stage: #eff0ec;
+  --color-ink: #14201d;
+  --color-ink-2: #5b6662;
+  --color-ink-3: #8c948f;
+  --color-line: #e2e4df;
+  --color-line-2: #c9cdc6;
+  --color-brand: #1e4b3d;
+  --color-brand-2: #163a2f;
+  --color-brand-soft: #e4ece7;
+  --color-brand-tint: #f0f4f1;
+  --color-warn: #7a5a12;
+  --color-warn-bg: #fbf4e4;
+  --color-danger: #9b2c2c;
+  --color-danger-bg: #fbecec;
+
+  --radius-md: 6px;
 }
 
 html { scroll-behavior: smooth; }
-body { @apply bg-paper text-ink-900 antialiased; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body { @apply bg-paper text-ink antialiased; font-feature-settings: "ss01", "cv11"; }
+h1, h2, h3 { text-wrap: balance; }
+.num { font-variant-numeric: tabular-nums; }
 
 @layer components {
-  .btn { @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-200 disabled:cursor-not-allowed disabled:opacity-50; }
-  .btn-primary { @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-200 disabled:cursor-not-allowed disabled:opacity-50 bg-brand-700 text-white hover:bg-brand-800 active:bg-brand-900 shadow-sm; }
-  .btn-secondary { @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-200 disabled:cursor-not-allowed disabled:opacity-50 bg-white text-ink-900 border border-ink-300 hover:border-ink-500 hover:bg-ink-100; }
-  .btn-ghost { @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-200 disabled:cursor-not-allowed disabled:opacity-50 text-brand-700 hover:bg-brand-50; }
-  .input { @apply w-full rounded-xl border border-ink-300 bg-white px-4 py-3 text-base text-ink-900 placeholder:text-ink-500 focus:border-brand-600 focus:outline-none focus:ring-4 focus:ring-brand-100; }
-  .label { @apply mb-1.5 block text-sm font-semibold text-ink-700; }
-  .card { @apply rounded-2xl border border-ink-300/60 bg-white shadow-sm; }
-  .chip { @apply inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold; }
+  .btn-primary { @apply inline-flex items-center justify-center gap-2 rounded-full bg-ink px-6 py-3 text-sm font-semibold text-paper transition-colors hover:bg-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-paper disabled:cursor-not-allowed disabled:opacity-40; }
+  .btn-secondary { @apply inline-flex items-center justify-center gap-2 rounded-full border border-line-2 bg-transparent px-6 py-3 text-sm font-semibold text-ink transition-colors hover:border-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-paper disabled:cursor-not-allowed disabled:opacity-40; }
+  .btn-light { @apply inline-flex items-center justify-center gap-2 rounded-full bg-paper px-6 py-3 text-sm font-semibold text-ink transition-colors hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-paper focus-visible:ring-offset-2 focus-visible:ring-offset-brand disabled:cursor-not-allowed disabled:opacity-40; }
+  .input { @apply w-full rounded-md border border-line-2 bg-surface px-4 py-3 text-base text-ink placeholder:text-ink-3 transition-colors focus:border-ink focus:outline-none focus:ring-0; }
+  .label { @apply mb-1.5 block text-[13px] font-medium text-ink-2; }
+  .eyebrow { @apply text-[11px] font-semibold uppercase tracking-[0.16em] text-brand; }
+  .display { @apply font-display font-medium tracking-[-0.01em]; }
+  .panel { @apply border border-line bg-surface; }
 }

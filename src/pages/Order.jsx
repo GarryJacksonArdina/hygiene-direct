@@ -90,55 +90,63 @@ export default function Order() {
 
   if (lines.length === 0) {
     return (
-      <main className="mx-auto max-w-3xl px-4 py-24 text-center sm:px-6">
-        <h1 className="text-3xl font-extrabold tracking-tight">Your order is empty</h1>
-        <p className="mt-3 text-ink-500">Add a few cartons and come back here to check out.</p>
-        <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <Link to="/#products" className="btn-primary">Browse products</Link>
+      <main className="mx-auto max-w-[1200px] px-5 py-28 sm:px-8">
+        <p className="eyebrow">Your order</p>
+        <h1 className="display mt-3 text-[40px] leading-[1.05]">Nothing here yet.</h1>
+        <p className="mt-3 text-[15px] text-ink-2">Add a few cartons and come back to check out.</p>
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Link to="/#products" className="btn-primary">See the range</Link>
           <Link to="/#calculator" className="btn-secondary">Use the calculator</Link>
         </div>
       </main>
     )
   }
 
+  const cardOn = !(payConfig.loaded && !payConfig.card)
+
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      <h1 className="text-3xl font-extrabold tracking-tight">Your order</h1>
-      <p className="mt-1 text-ink-500">{cartonCount} carton{cartonCount === 1 ? '' : 's'} · review, add your details, pay by card or on invoice.</p>
+    <main className="mx-auto max-w-[1200px] px-5 py-12 sm:px-8">
+      <p className="eyebrow">Your order</p>
+      <h1 className="display mt-3 text-[40px] leading-[1.05] md:text-[48px]">
+        <span className="num">{cartonCount}</span> carton{cartonCount === 1 ? '' : 's'}, ready when you are.
+      </h1>
       {cancelled && (
-        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-          Card payment was cancelled. Your order is still here. Try again or choose pay on invoice.
-        </div>
+        <p className="mt-5 max-w-2xl border-l-2 border-warn bg-warn-bg px-4 py-3 text-[14px] text-warn">
+          Card payment was cancelled. Your order is still here. Try again or choose an invoice option.
+        </p>
       )}
 
-      <form onSubmit={onSubmit} className="mt-8 grid gap-8 lg:grid-cols-5" noValidate={false}>
-        <div className="space-y-8 lg:col-span-3">
+      <form onSubmit={onSubmit} className="mt-10 grid gap-12 lg:grid-cols-12">
+        <div className="space-y-12 lg:col-span-7">
           {/* Lines */}
-          <section className="card divide-y divide-ink-100">
-            {lines.map((l) => (
-              <div key={l.variantId} className="flex flex-wrap items-center gap-4 p-5">
-                <div className="min-w-0 flex-1">
-                  <p className="font-bold">{l.product.name}</p>
-                  <p className="text-sm text-ink-500">{l.variant.label}</p>
-                  <p className="mt-1 text-xs text-ink-500">{fmt(cartonPrice(l.variant, l.qty))} per carton ex GST</p>
-                </div>
-                <QtyStepper value={l.qty} min={0} onChange={(n) => setQty(l.productId, l.variantId, n)} />
-                <div className="w-24 text-right font-bold">{fmt(cartonPrice(l.variant, l.qty) * l.qty)}</div>
-                <button type="button" onClick={() => remove(l.productId, l.variantId)} className="text-sm font-semibold text-ink-500 hover:text-red-600" aria-label={`Remove ${l.product.name}`}>
-                  Remove
-                </button>
-              </div>
-            ))}
-            <div className="flex items-center justify-between p-5">
-              <Link to="/#products" className="text-sm font-semibold text-brand-700 hover:underline">+ Add more products</Link>
-              <button type="button" onClick={clear} className="text-sm font-semibold text-ink-500 hover:text-red-600">Clear order</button>
+          <section>
+            <SectionHead n="1" title="Cartons" />
+            <ul className="divide-y divide-line border-y border-line">
+              {lines.map((l) => (
+                <li key={l.variantId} className="grid grid-cols-[1fr_auto] items-center gap-x-6 gap-y-3 py-5 sm:grid-cols-[1fr_auto_6rem_auto]">
+                  <div className="min-w-0">
+                    <p className="text-[16px] font-medium">{l.product.name}</p>
+                    <p className="text-[13px] text-ink-2">{l.variant.label}</p>
+                    <p className="num mt-0.5 text-[12px] text-ink-3">{fmt(cartonPrice(l.variant, l.qty))} per carton ex GST</p>
+                  </div>
+                  <QtyStepper value={l.qty} min={0} onChange={(n) => setQty(l.productId, l.variantId, n)} />
+                  <div className="num text-right text-[16px] font-medium">{fmt(cartonPrice(l.variant, l.qty) * l.qty)}</div>
+                  <button type="button" onClick={() => remove(l.productId, l.variantId)} className="text-[13px] text-ink-3 underline decoration-line-2 underline-offset-4 transition-colors hover:text-danger" aria-label={`Remove ${l.product.name}`}>
+                    Remove
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <div className="flex items-center justify-between pt-4 text-[13px]">
+              <Link to="/#products" className="font-medium text-ink underline decoration-line-2 underline-offset-4 hover:decoration-ink">Add more products</Link>
+              <button type="button" onClick={clear} className="text-ink-3 underline decoration-line-2 underline-offset-4 transition-colors hover:text-danger">Clear order</button>
             </div>
           </section>
 
           {/* Details */}
-          <section className="card p-6">
-            <h2 className="text-xl font-extrabold tracking-tight">Business details</h2>
-            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+          <section>
+            <SectionHead n="2" title="Business" />
+            <div className="grid gap-5 sm:grid-cols-2">
               <Input label="Business name" required value={form.businessName} onChange={set('businessName')} autoComplete="organization" />
               <Input label="ABN (optional)" value={form.abn} onChange={set('abn')} inputMode="numeric" />
               <Input label="Contact name" required value={form.contactName} onChange={set('contactName')} autoComplete="name" />
@@ -147,9 +155,9 @@ export default function Order() {
             </div>
           </section>
 
-          <section className="card p-6">
-            <h2 className="text-xl font-extrabold tracking-tight">Delivery</h2>
-            <div className="mt-5 grid gap-4 sm:grid-cols-6">
+          <section>
+            <SectionHead n="3" title="Delivery" />
+            <div className="grid gap-5 sm:grid-cols-6">
               <Input label="Street address" required value={form.street} onChange={set('street')} autoComplete="street-address" className="sm:col-span-6" />
               <Input label="Suburb" required value={form.suburb} onChange={set('suburb')} autoComplete="address-level2" className="sm:col-span-3" />
               <div className="sm:col-span-1">
@@ -165,48 +173,51 @@ export default function Order() {
                 <textarea id="deliveryInstructions" rows="2" className="input" placeholder="Loading dock, reception, best days and times, who to ask for" value={form.deliveryInstructions} onChange={set('deliveryInstructions')} />
               </div>
             </div>
-            <p className="mt-4 text-sm text-ink-500">We deliver across {site.deliveryArea} in {site.deliveryLeadTime}. Outside this area, submit anyway and we will confirm before charging you anything.</p>
+            <p className="mt-4 text-[13px] leading-relaxed text-ink-3">We deliver across {site.deliveryArea} in {site.deliveryLeadTime}. Outside that area, submit anyway and we will confirm before anything is charged.</p>
           </section>
 
-          <section className="card p-6">
-            <h2 className="text-xl font-extrabold tracking-tight">Payment</h2>
-            <div className="mt-5 space-y-3">
+          <section>
+            <SectionHead n="4" title="Payment" />
+            <div className="divide-y divide-line border-y border-line">
               <Radio
                 name="paymentMethod"
                 value="card"
                 checked={form.paymentMethod === 'card'}
                 onChange={set('paymentMethod')}
-                disabled={payConfig.loaded && !payConfig.card}
-                title={<>Pay by card now <CardLogos /></>}
-                desc={payConfig.loaded && !payConfig.card ? 'Card payments are being switched on. Choose an invoice option for now.' : 'Visa, Mastercard and Amex through Stripe. Fastest way to get your order moving. A tax receipt is emailed straight away.'}
+                disabled={!cardOn}
+                title="Card, now"
+                meta="Visa · Mastercard · Amex"
+                desc={cardOn ? 'Secure checkout through Stripe. Fastest way to get your order moving. Tax receipt emailed straight away.' : 'Card payments are being switched on. Choose an invoice option for now.'}
               />
-              <Radio name="paymentMethod" value="invoice-prepay" checked={form.paymentMethod === 'invoice-prepay'} onChange={set('paymentMethod')} title="Pay on invoice before delivery" desc="We email a tax invoice. Pay by bank transfer and we deliver once it clears." />
-              <Radio name="paymentMethod" value="account-30" checked={form.paymentMethod === 'account-30'} onChange={set('paymentMethod')} title="30 day account" desc={`For approved account customers and existing ${site.parentCompany} clients. Not on an account yet? Choose this and we will send you the short application with your confirmation.`} />
+              <Radio name="paymentMethod" value="invoice-prepay" checked={form.paymentMethod === 'invoice-prepay'} onChange={set('paymentMethod')} title="Invoice, before delivery" meta="Bank transfer" desc="We email a tax invoice. Pay by bank transfer and we deliver once it clears." />
+              <Radio name="paymentMethod" value="account-30" checked={form.paymentMethod === 'account-30'} onChange={set('paymentMethod')} title="30 day account" meta="Approved customers" desc={`For account customers and existing ${site.parentCompany} clients. Not on an account yet? Choose this and we will send the short application with your confirmation.`} />
             </div>
             {payConfig.testMode && form.paymentMethod === 'card' && (
-              <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">Stripe is in test mode. Use card 4242 4242 4242 4242, any future expiry, any CVC. No real money moves.</p>
+              <p className="num mt-4 border-l-2 border-warn bg-warn-bg px-4 py-3 text-[13px] text-warn">Stripe is in test mode. Use card 4242 4242 4242 4242, any future expiry, any CVC. No real money moves.</p>
             )}
           </section>
         </div>
 
         {/* Summary */}
-        <aside className="lg:col-span-2">
-          <div className="card sticky top-24 p-6">
-            <h2 className="text-lg font-extrabold tracking-tight">Summary</h2>
-            <div className="mt-4">
+        <aside className="lg:col-span-5">
+          <div className="panel sticky top-24 p-7">
+            <p className="eyebrow">Summary</p>
+            <div className="mt-5">
               <OrderSummary />
             </div>
-            <button type="submit" className="btn-primary mt-6 w-full !py-4 !text-base" disabled={status === 'submitting'}>
-              {status === 'submitting' ? (form.paymentMethod === 'card' ? 'Taking you to secure payment…' : 'Sending order…') : form.paymentMethod === 'card' ? `Pay ${fmt(totals.total)} by card` : 'Submit order'}
+            <button type="submit" className="btn-primary mt-7 w-full !py-4 !text-[15px]" disabled={status === 'submitting'}>
+              {status === 'submitting'
+                ? form.paymentMethod === 'card' ? 'Taking you to secure payment…' : 'Sending order…'
+                : form.paymentMethod === 'card' ? <span className="num">Pay {fmt(totals.total)} by card</span> : 'Submit order'}
             </button>
-            <p className="mt-3 text-xs text-ink-500">
-              By submitting you agree to our <Link to="/terms" className="underline">terms of trade</Link>. You will receive an email confirmation.
-              {form.paymentMethod === 'card' ? ' Card details are entered on Stripe\u2019s secure page, never on this site.' : ' Nothing is charged online.'}
+            <p className="mt-4 text-[12px] leading-relaxed text-ink-3">
+              By submitting you agree to our <Link to="/terms" className="underline decoration-line-2 underline-offset-2 hover:text-ink">terms of trade</Link>. You will receive an email confirmation.
+              {form.paymentMethod === 'card' ? ' Card details are entered on Stripe’s secure page, never on this site.' : ' Nothing is charged online.'}
             </p>
             {status === 'error' && (
-              <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
-                <p className="font-semibold">{errorMsg.message || 'We could not send your order automatically.'}</p>
-                <p className="mt-1">Please try again, <a className="underline" href={errorMsg.mail}>email the order to us</a> or call {site.phone}. Your order details are prefilled in the email.</p>
+              <div className="mt-5 border-l-2 border-danger bg-danger-bg px-4 py-3 text-[13px] text-danger">
+                <p className="font-medium">{errorMsg.message || 'We could not send your order automatically.'}</p>
+                <p className="mt-1">Try again, <a className="underline" href={errorMsg.mail}>email the order to us</a> or call <span className="num">{site.phone}</span>. Your details are prefilled in the email.</p>
               </div>
             )}
           </div>
@@ -216,34 +227,39 @@ export default function Order() {
   )
 }
 
+function SectionHead({ n, title }) {
+  return (
+    <div className="mb-5 flex items-baseline gap-3">
+      <span className="num font-display text-[20px] font-medium text-ink-3">{n}</span>
+      <h2 className="display text-[26px]">{title}</h2>
+    </div>
+  )
+}
+
 function Input({ label, className = '', ...props }) {
   const id = label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
   return (
     <div className={className}>
-      <label className="label" htmlFor={id}>{label}{props.required && <span className="text-red-600"> *</span>}</label>
+      <label className="label" htmlFor={id}>{label}{props.required && <span className="text-ink-3"> *</span>}</label>
       <input id={id} className="input" {...props} />
     </div>
   )
 }
 
-function Radio({ title, desc, ...props }) {
+function Radio({ title, meta, desc, ...props }) {
   return (
-    <label className={`flex gap-3 rounded-xl border p-4 transition ${props.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'} ${props.checked ? 'border-brand-600 bg-brand-50 ring-2 ring-brand-200' : 'border-ink-300 hover:border-ink-500'}`}>
-      <input type="radio" className="mt-1 h-4 w-4 accent-brand-700" {...props} />
+    <label className={`grid grid-cols-[1.25rem_1fr] gap-4 py-5 transition-colors ${props.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} ${props.checked ? '' : 'text-ink-2 hover:text-ink'}`}>
+      <span className={`mt-1 flex h-5 w-5 items-center justify-center rounded-full border ${props.checked ? 'border-ink' : 'border-line-2'}`} aria-hidden="true">
+        {props.checked && <span className="h-2.5 w-2.5 rounded-full bg-ink" />}
+      </span>
+      <input type="radio" className="sr-only" {...props} />
       <span>
-        <span className="flex flex-wrap items-center gap-2 font-semibold">{title}</span>
-        <span className="mt-0.5 block text-sm text-ink-500">{desc}</span>
+        <span className="flex flex-wrap items-baseline gap-x-3">
+          <span className={`text-[16px] font-medium ${props.checked ? 'text-ink' : ''}`}>{title}</span>
+          <span className="text-[12px] uppercase tracking-[0.1em] text-ink-3">{meta}</span>
+        </span>
+        <span className="mt-1 block text-[13px] leading-relaxed text-ink-2">{desc}</span>
       </span>
     </label>
-  )
-}
-
-function CardLogos() {
-  return (
-    <span className="inline-flex gap-1" aria-hidden="true">
-      {['Visa', 'MC', 'Amex'].map((c) => (
-        <span key={c} className="rounded border border-ink-300 bg-white px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-ink-700">{c}</span>
-      ))}
-    </span>
   )
 }
