@@ -18,8 +18,8 @@ export default function Footer() {
         <div>
           <h3 className="text-sm font-bold uppercase tracking-wide text-ink-700">Order</h3>
           <ul className="mt-3 space-y-2 text-sm text-ink-500">
-            <li><a className="hover:text-brand-700" href="/#products">Products</a></li>
-            <li><a className="hover:text-brand-700" href="/#calculator">Usage calculator</a></li>
+            <li><Link className="hover:text-brand-700" to="/#products">Products</Link></li>
+            <li><Link className="hover:text-brand-700" to="/#calculator">Usage calculator</Link></li>
             <li><Link className="hover:text-brand-700" to="/order">Your order</Link></li>
             <li><Link className="hover:text-brand-700" to="/account">Open a 30 day account</Link></li>
           </ul>

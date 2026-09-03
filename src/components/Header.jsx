@@ -19,10 +19,10 @@ export default function Header() {
         </Link>
 
         <nav className="hidden items-center gap-6 text-sm font-semibold text-ink-700 md:flex" aria-label="Main">
-          <a href="/#products" className="hover:text-brand-700">Products</a>
-          <a href="/#calculator" className="hover:text-brand-700">How much do I need?</a>
-          <a href="/#how-it-works" className="hover:text-brand-700">How it works</a>
-          <a href="/#faq" className="hover:text-brand-700">FAQ</a>
+          <Link to="/#products" className="hover:text-brand-700">Products</Link>
+          <Link to="/#calculator" className="hover:text-brand-700">How much do I need?</Link>
+          <Link to="/#how-it-works" className="hover:text-brand-700">How it works</Link>
+          <Link to="/#faq" className="hover:text-brand-700">FAQ</Link>
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3">

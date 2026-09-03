@@ -1,5 +1,13 @@
 // Thin client for the /api routes. Same code runs on Netlify and Vercel.
+// In the shareable single file preview there is no server, so calls are simulated.
+const MOCK = import.meta.env.VITE_PREVIEW_MOCK === '1'
+
 async function post(path, data) {
+  if (MOCK) {
+    await new Promise((r) => setTimeout(r, 600))
+    if (path.includes('checkout')) throw new Error('Card payment runs on the live site once Stripe keys are added.')
+    return { ok: true, delivered: false, preview: true }
+  }
   const res = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
   let body = {}
   try { body = await res.json() } catch { /* non JSON response */ }
@@ -12,6 +20,7 @@ export const submitAccountEnquiry = (payload) => post('/api/account-enquiry', pa
 export const createCheckoutSession = (payload) => post('/api/create-checkout-session', payload)
 
 export async function fetchPaymentConfig() {
+  if (MOCK) return { card: false, preview: true }
   try {
     const res = await fetch('/api/payment-config')
     if (!res.ok) return { card: false }

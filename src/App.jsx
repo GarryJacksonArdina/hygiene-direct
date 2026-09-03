@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
+import { BrowserRouter, HashRouter, Route, Routes, useLocation } from 'react-router-dom'
 import Footer from './components/Footer'
 import Header from './components/Header'
 import { CartProvider } from './context/CartContext'
@@ -12,8 +12,9 @@ import Terms from './pages/Terms'
 function ScrollManager() {
   const { pathname, hash } = useLocation()
   useEffect(() => {
-    if (hash) {
-      const el = document.querySelector(hash)
+    const target = hash || (pathname.length > 1 ? '#' + pathname.slice(1) : '')
+    if (target) {
+      const el = document.getElementById(target.slice(1))
       if (el) {
         el.scrollIntoView({ behavior: 'smooth', block: 'start' })
         return
@@ -24,9 +25,12 @@ function ScrollManager() {
   return null
 }
 
+// The shareable single file preview uses hash routing because it has no server.
+const Router = import.meta.env.VITE_PREVIEW_MOCK ? HashRouter : BrowserRouter
+
 export default function App() {
   return (
-    <BrowserRouter>
+    <Router>
       <CartProvider>
         <ScrollManager />
         <div className="flex min-h-screen flex-col">
@@ -44,6 +48,6 @@ export default function App() {
           <Footer />
         </div>
       </CartProvider>
-    </BrowserRouter>
+    </Router>
   )
 }
