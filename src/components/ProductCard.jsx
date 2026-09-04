@@ -32,38 +32,35 @@ export default function ProductCard({ product }) {
   const next = nextTier(shownQty)
 
   return (
-    <article className="group flex flex-col bg-surface" id={product.slug}>
-      <div className="relative aspect-[5/4] overflow-hidden bg-stage">
-        <Illustration kind={product.illustration} className="absolute inset-0 h-full w-full p-6 transition-transform duration-500 ease-out group-hover:scale-[1.03] motion-reduce:transition-none" />
-        <div className="absolute left-5 top-5 flex gap-2">
-          {product.premium && <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand">Premium</span>}
-        </div>
+    <article className="group flex flex-col overflow-hidden rounded-[28px] bg-stage" id={product.slug}>
+      <div className="px-8 pt-9 text-center">
+        <p className="eyebrow">{product.category}</p>
+        <h3 className="display mt-2 text-[28px] leading-[1.05]">{product.name}</h3>
+        <p className="mx-auto mt-2 max-w-[26ch] text-[14px] leading-snug text-ink-2">{product.tagline}</p>
+      </div>
+
+      <div className="relative mx-auto mt-4 aspect-square w-full max-w-[300px]">
+        <Illustration kind={product.illustration} image={product.image} alt={product.name} className="absolute inset-0 h-full w-full p-4 transition-transform duration-700 ease-out group-hover:scale-[1.04] motion-reduce:transition-none" />
         {inCart && (
-          <span className="num absolute right-5 top-5 rounded-full bg-ink px-2.5 py-1 text-[11px] font-semibold text-paper">
-            {qty} in order
-          </span>
+          <span className="num absolute right-6 top-4 rounded-full bg-ink px-2.5 py-1 text-[11px] font-semibold text-white">{qty} in order</span>
         )}
       </div>
 
-      <div className="flex flex-1 flex-col px-6 pb-7 pt-6">
-        <p className="eyebrow">{product.category}</p>
-        <h3 className="display mt-2 text-[28px] leading-[1.05]">{product.name}</h3>
-        <p className="mt-2 text-[14px] leading-relaxed text-ink-2">{product.tagline}</p>
-
-        <ul className="mt-5 space-y-1.5 border-t border-line pt-5 text-[13px] text-ink-2">
+      <div className="flex flex-1 flex-col px-8 pb-8">
+        <ul className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[12px] text-ink-2">
           {product.features.map((f) => (
-            <li key={f} className="flex items-center gap-2.5">
-              <span className="h-px w-3 bg-line-2" aria-hidden="true" />
+            <li key={f} className="flex items-start gap-1.5">
+              <span className="mt-[7px] h-[3px] w-[3px] shrink-0 rounded-full bg-ink-3" aria-hidden="true" />
               {f}
             </li>
           ))}
         </ul>
 
-        <div className="mt-5">
+        <div className="mt-6">
           {product.variants.length > 1 ? (
             <>
               <label className="label" htmlFor={`${product.id}-variant`}>Pack size</label>
-              <select id={`${product.id}-variant`} className="input !py-2.5 text-[14px]" value={variantId} onChange={(e) => setVariantId(e.target.value)}>
+              <select id={`${product.id}-variant`} className="input !bg-white !py-2.5 !text-[14px]" value={variantId} onChange={(e) => setVariantId(e.target.value)}>
                 {product.variants.map((v) => (
                   <option key={v.id} value={v.id}>{v.shortLabel ?? v.label}</option>
                 ))}
@@ -75,14 +72,12 @@ export default function ProductCard({ product }) {
           )}
         </div>
 
-        <div className="mt-6 flex items-end justify-between gap-4 border-t border-line pt-5">
-          <div>
-            <Price exGst={unitPrice} suffix=" per carton" />
-            <p className="num mt-1.5 text-[12px] text-ink-3">
-              {unitMetric(variant, unitPrice)}
-              {tier.discount > 0 && <span className="ml-2 font-semibold text-brand">{Math.round(tier.discount * 100)}% volume price</span>}
-            </p>
-          </div>
+        <div className="mt-6 border-t border-line/70 pt-5">
+          <Price exGst={unitPrice} suffix=" per carton" />
+          <p className="num mt-1.5 text-[12px] text-ink-3">
+            {unitMetric(variant, unitPrice)}
+            {tier.discount > 0 && <span className="ml-2 font-medium text-brand">{Math.round(tier.discount * 100)}% volume price</span>}
+          </p>
         </div>
 
         <div className="mt-5 flex items-center justify-between gap-3">
@@ -94,7 +89,7 @@ export default function ProductCard({ product }) {
           <span className="num text-[12px] text-ink-3">carton{shownQty === 1 ? '' : 's'}</span>
         </div>
         {inCart ? (
-          <p className="num mt-3 flex h-11 items-center justify-center rounded-full border border-brand-soft bg-brand-tint text-[13px] font-medium text-brand">
+          <p className="num mt-3 flex h-11 items-center justify-center rounded-full bg-white text-[14px] font-medium text-brand">
             {qty} carton{qty === 1 ? '' : 's'} in your order
           </p>
         ) : (
@@ -102,10 +97,9 @@ export default function ProductCard({ product }) {
             Add to order
           </button>
         )}
-
         {next && (
-          <p className="num mt-3 text-[12px] text-ink-3">
-            {next.minCartons - shownQty} more carton{next.minCartons - shownQty === 1 ? '' : 's'} unlocks {Math.round(next.discount * 100)}% off this line.
+          <p className="num mt-3 text-center text-[12px] text-ink-3">
+            {next.minCartons - shownQty} more unlocks {Math.round(next.discount * 100)}% off this line.
           </p>
         )}
       </div>

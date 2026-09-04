@@ -1,6 +1,10 @@
 // ---------------------------------------------------------------------------
 // Product catalogue. Prices are per carton, ex GST, in AUD.
 // PLACEHOLDER PRICING. Replace with real supplier cost + margin before launch.
+//
+// Photos: drop a PNG with a transparent or white background into public/products/
+// and set `image: '/products/2-ply.png'` on the product. Square, at least 1200px.
+// Until then the tonal illustration is shown.
 // ---------------------------------------------------------------------------
 export const products = [
   {
@@ -10,6 +14,7 @@ export const products = [
     shortName: '2 Ply Toilet Paper',
     category: 'Toilet Paper',
     illustration: 'roll',
+    image: null, // e.g. '/products/2-ply.png'
     tagline: 'The everyday workhorse for busy washrooms.',
     description:
       'Soft, strong 2 ply virgin tissue in a standard 400 sheet roll. Fits all standard single and jumbo style dispensers that take conventional rolls. Individually wrapped for hygiene.',
